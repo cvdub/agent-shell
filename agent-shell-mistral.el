@@ -57,7 +57,7 @@ For API key (function):
   (setq agent-shell-mistral-authentication
         (agent-shell-mistral-make-authentication :api-key (lambda () ...)))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-mistral-default-model-id
   nil
@@ -66,7 +66,7 @@ For API key (function):
 Must be one of the model ID's displayed under \"Available models\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-mistral-default-session-mode-id
   nil
@@ -75,7 +75,7 @@ when starting a new shell."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-mistral-acp-command
   '("vibe-acp")
@@ -83,7 +83,7 @@ when starting a new shell."
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-mistral-environment
   nil
@@ -99,7 +99,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-mistral-make-config ()
   "Create a Mistral Vibe agent configuration.

@@ -46,7 +46,7 @@
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-hermes-environment
   nil
@@ -55,7 +55,7 @@ The first element is the command name, and the rest are command parameters."
 This should be a list of environment variables to be used when
 starting the Hermes agent process."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-hermes-default-session-mode-id nil
   "Default ACP session mode for the Hermes agent.
@@ -72,7 +72,7 @@ nil               Don't set a mode; let Hermes use its own default.
   :type '(choice (const :tag "Ask every time" nil)
                  (const :tag "Accept edits (workspace+tmp)" "accept_edits")
                  (const :tag "Don't ask (session-wide)" "dont_ask"))
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-hermes-make-agent-config ()
   "Create a Hermes agent configuration.

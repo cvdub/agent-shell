@@ -44,7 +44,7 @@
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-omp-environment
   nil
@@ -59,7 +59,7 @@ Example usage:
         (agent-shell-make-environment-variables
          \"<KEY>\" \"<VALUE>\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-omp-make-agent-config ()
   "Create an Oh My Pi (omp) agent configuration.

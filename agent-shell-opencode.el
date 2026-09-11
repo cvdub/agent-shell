@@ -69,7 +69,7 @@ For no authentication (when using `opencode auth login`):
   (setq agent-shell-opencode-authentication
         (agent-shell-opencode-make-authentication :none t))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-opencode-default-model-id
   nil
@@ -78,7 +78,7 @@ For no authentication (when using `opencode auth login`):
 Must be one of the model ID's displayed under \"Available models\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-opencode-default-config-options
   nil
@@ -103,7 +103,7 @@ scopes the available efforts to the active model, so \"effort\" belongs
 after \"model\".  An option or value OpenCode does not offer is
 reported and skipped."
   :type '(alist :key-type string :value-type string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-opencode-default-session-mode-id
   nil
@@ -112,7 +112,7 @@ reported and skipped."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-opencode-acp-command
   '("opencode" "acp")
@@ -120,7 +120,7 @@ when starting a new shell."
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-opencode-environment
   nil
@@ -136,7 +136,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-opencode-make-agent-config ()
   "Create an OpenCode agent configuration.

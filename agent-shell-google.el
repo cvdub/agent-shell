@@ -85,7 +85,7 @@ For no authentication (when using alternative authentication methods):
   (setq agent-shell-google-authentication
         (agent-shell-google-make-authentication :none t))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-google-gemini-acp-command
   '("gemini" "--experimental-acp")
@@ -93,7 +93,7 @@ For no authentication (when using alternative authentication methods):
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-google-gemini-environment
   nil
@@ -109,7 +109,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-google-make-gemini-config ()
   "Create a Gemini CLI agent configuration.

@@ -85,7 +85,7 @@ For OAuth token:
   (setq agent-shell-anthropic-authentication
         (agent-shell-anthropic-make-authentication :oauth (lambda () ... )))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-anthropic-default-model-id
   nil
@@ -96,7 +96,7 @@ when starting a new shell.
 
 Can be set to either a string or a function that returns a string."
   :type '(choice (const nil) string function)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-anthropic-default-session-mode-id
   nil
@@ -105,7 +105,7 @@ Can be set to either a string or a function that returns a string."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-anthropic-claude-acp-command
   '("claude-agent-acp")
@@ -113,7 +113,7 @@ when starting a new shell."
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-anthropic-claude-environment
   nil
@@ -129,7 +129,7 @@ Example usage to set a custom Anthropic API base URL:
          \"ANTHROPIC_BASE_URL\" \"https://api.moonshot.cn/anthropic/\"
          \"ANTHROPIC_MODEL\" \"moonshot-v1-auto\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-anthropic-make-claude-code-config ()
   "Create a Claude Agent configuration.

@@ -53,7 +53,7 @@ Examples:
   (\"grok\" \"agent\" \"-m\" \"grok-build\" \"stdio\")
   (\"grok\" \"agent\" \"--always-approve\" \"stdio\")"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-xai-environment
   nil
@@ -69,7 +69,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-xai-default-model-id
   nil
@@ -80,7 +80,7 @@ when starting a new shell.
 
 Can be set to either a string or a function that returns a string."
   :type '(choice (const nil) string function)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-xai-default-session-mode-id
   nil
@@ -89,7 +89,7 @@ Can be set to either a string or a function that returns a string."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-xai-make-grok-config ()
   "Create a Grok Build agent configuration.
