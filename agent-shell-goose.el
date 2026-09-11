@@ -73,7 +73,7 @@ For no authentication, handled by Goose (default):
   (setq agent-shell-goose-authentication
         (agent-shell-make-goose-authentication :none t))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-goose-acp-command
   '("goose" "acp")
@@ -81,7 +81,7 @@ For no authentication, handled by Goose (default):
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-goose-environment
   nil
@@ -97,7 +97,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-goose-make-agent-config ()
   "Create a Goose agent configuration.

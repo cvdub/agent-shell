@@ -65,7 +65,7 @@ For no authentication (when using alternative authentication methods):
   (setq agent-shell-auggie-authentication
         (agent-shell-make-auggie-authentication :none t))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-auggie-acp-command
   '("auggie" "--acp")
@@ -73,7 +73,7 @@ For no authentication (when using alternative authentication methods):
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-auggie-environment
   nil
@@ -89,7 +89,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-auggie-make-agent-config ()
   "Create an Auggie agent configuration.
