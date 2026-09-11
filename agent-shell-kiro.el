@@ -39,7 +39,7 @@
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-kiro-default-model-id
   nil
@@ -50,7 +50,7 @@ when starting a new shell.
 
 Can be set to either a string or a function that returns a string."
   :type '(choice (const nil) string function)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-kiro-default-session-mode-id
   nil
@@ -59,7 +59,7 @@ Can be set to either a string or a function that returns a string."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-kiro-environment
   nil
@@ -68,7 +68,7 @@ when starting a new shell."
 This should be a list of environment variables to be used when
 starting the Kiro client process."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-kiro-make-config ()
   "Create a Kiro agent configuration.

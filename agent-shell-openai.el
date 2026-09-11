@@ -79,7 +79,7 @@ For Codex API key (function):
   (setq agent-shell-openai-authentication
         (agent-shell-openai-make-authentication :codex-api-key (lambda () ...)))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-openai-codex-acp-command
   '("codex-acp")
@@ -87,7 +87,7 @@ For Codex API key (function):
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-openai-codex-environment
   nil
@@ -103,7 +103,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-openai-default-model-id
   nil
@@ -114,7 +114,7 @@ when starting a new Codex shell.
 
 Can be set to either a string or a function that returns a string."
   :type '(choice (const nil) string function)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-openai-default-session-mode-id
   nil
@@ -123,7 +123,7 @@ Can be set to either a string or a function that returns a string."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new Codex shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-openai--codex-default-auth-request ()
   "Create the Codex default auth request for the current auth config.

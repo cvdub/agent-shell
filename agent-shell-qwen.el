@@ -75,7 +75,7 @@ API key and set the base URL and model via `agent-shell-qwen-environment':
          \"OPENAI_BASE_URL\" \"https://openrouter.ai/api/v1\"
          \"OPENAI_MODEL\" \"x-ai/grok-4.3\"))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-qwen-acp-command
   '("qwen" "--experimental-acp")
@@ -83,7 +83,7 @@ API key and set the base URL and model via `agent-shell-qwen-environment':
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-qwen-environment
   nil
@@ -99,7 +99,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-qwen-make-agent-config ()
   "Create a Qwen Code CLI agent configuration.

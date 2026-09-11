@@ -52,7 +52,7 @@
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-mock-agent-make-agent-config ()
   "Create a mock ACP agent configuration.

@@ -42,7 +42,7 @@
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-codebuddy-environment
   nil
@@ -51,7 +51,7 @@ The first element is the command name, and the rest are command parameters."
 This should be a list of environment variables to be used when
 starting the CodeBuddy agent process."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-codebuddy-make-agent-config ()
   "Create a CodeBuddy agent configuration.

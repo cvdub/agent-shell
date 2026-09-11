@@ -102,7 +102,7 @@ For no authentication (already authenticated via `agent login'):
   (setq agent-shell-cursor-authentication
         (agent-shell-cursor-make-authentication :none t))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-cursor-acp-command
   '("agent" "acp")
@@ -110,7 +110,7 @@ For no authentication (already authenticated via `agent login'):
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-cursor-environment
   nil
@@ -119,7 +119,7 @@ The first element is the command name, and the rest are command parameters."
 This should be a list of environment variables to be used when
 starting the Cursor agent process."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-cursor--make-text-content-block (text)
   "Wrap TEXT in a standard ACP tool-call content block alist.

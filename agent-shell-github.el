@@ -42,7 +42,7 @@
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-github-default-model-id
   nil
@@ -51,7 +51,7 @@ The first element is the command name, and the rest are command parameters."
 Must be one of the model ID's displayed under \"Available models\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-github-default-session-mode-id
   nil
@@ -60,7 +60,7 @@ when starting a new shell."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-github-environment
   nil
@@ -69,7 +69,7 @@ when starting a new shell."
 This should be a list of environment variables to be used when
 starting the GitHub Copilot agent process."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-github-make-copilot-config ()
   "Create a GitHub Copilot agent configuration.

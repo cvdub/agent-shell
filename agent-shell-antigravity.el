@@ -55,7 +55,7 @@ https://github.com/agentclientprotocol/registry/tree/main/antigravity-acp
 \(Linux additionally passes \"--uid=\").  Set this to an absolute path
 if the binary isn't on variable `exec-path'."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-antigravity-environment
   nil
@@ -64,7 +64,7 @@ if the binary isn't on variable `exec-path'."
 This should be a list of environment variables to be used when
 starting the Antigravity agent process."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (cl-defun agent-shell-antigravity-make-authentication (&key login api-key business agent-platform none)
   "Create Antigravity authentication configuration.
@@ -124,7 +124,7 @@ For no authentication (when managed externally):
   (setq agent-shell-antigravity-authentication
         (agent-shell-antigravity-make-authentication :none t))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-antigravity-key ()
   "Get the Gemini API key."

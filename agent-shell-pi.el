@@ -51,7 +51,7 @@ The first element is the command name, and the rest are command parameters.
 
 Pi requires the pi-acp adapter for ACP integration."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-pi-environment
   nil
@@ -67,7 +67,7 @@ Example usage to set custom environment variables:
          \"ANTHROPIC_API_KEY\" \"your-key\"
          \"PI_CODING_AGENT_DIR\" \"~/.pi/agent\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defvar-local agent-shell-pi--terminal-output-snapshots nil
   "Alist of Pi terminal IDs and accumulated output for the current buffer.")

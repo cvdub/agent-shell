@@ -71,7 +71,7 @@ For no authentication (e.g., using `droid-acp` built-in login):
   (setq agent-shell-droid-authentication
         (agent-shell-droid-make-authentication :none t))"
   :type 'alist
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-droid-default-model-id
   nil
@@ -80,7 +80,7 @@ For no authentication (e.g., using `droid-acp` built-in login):
 Must be one of the model ID's displayed under \"Available models\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-droid-default-session-mode-id
   nil
@@ -89,7 +89,7 @@ when starting a new shell."
 Must be one of the mode ID's displayed under \"Available modes\"
 when starting a new shell."
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-droid-default-reasoning-effort
   nil
@@ -98,7 +98,7 @@ when starting a new shell."
 It can be one of the followings.
 none, dynamic, off, minimal, low, medium, high, xhigh, max"
   :type '(choice (const nil) string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-droid-acp-command
   '("droid" "exec" "--output-format" "acp")
@@ -106,7 +106,7 @@ none, dynamic, off, minimal, low, medium, high, xhigh, max"
 
 The first element is the command name, and the rest are command parameters."
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defcustom agent-shell-droid-environment
   nil
@@ -122,7 +122,7 @@ Example usage to set custom environment variables:
          \"MY_VAR\" \"some-value\"
          \"MY_OTHER_VAR\" \"another-value\"))"
   :type '(repeat string)
-  :group 'agent-shell)
+  :group 'agent-shell-backends)
 
 (defun agent-shell-droid-make-agent-config ()
   "Create a Factory Droid agent configuration.

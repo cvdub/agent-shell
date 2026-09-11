@@ -119,6 +119,10 @@
 (defvar auto-insert)
 
 
+(defgroup agent-shell-backends nil
+  "Backend-specific settings for Agent Shell."
+  :group 'agent-shell)
+
 (defcustom agent-shell-permission-icon "⚠"
   "Icon displayed when shell commands require permission to execute.
 
