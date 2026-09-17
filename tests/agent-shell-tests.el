@@ -3956,6 +3956,71 @@ other unknown ones."
           (should-not (string-match-p "test-session-id"
                                       (substring-no-properties header))))))))
 
+(ert-deftest agent-shell--make-header-model-honors-show-key-hints-test ()
+  "Test `agent-shell--make-header-model' honors `agent-shell-show-key-hints'."
+  (with-temp-buffer
+    (setq-local agent-shell--state
+                `((:agent-config . ((:buffer-name . "Claude Code")
+                                    (:icon-name . nil)))
+                  (:session . ((:id . nil)
+                               (:model-id . nil)
+                               (:models . nil)
+                               (:mode-id . nil)
+                               (:modes . nil)))))
+    (cl-letf (((symbol-function 'agent-shell--state)
+               (lambda () agent-shell--state))
+              ((symbol-function 'agent-shell--context-usage-indicator)
+               (lambda () nil))
+              ((symbol-function 'agent-shell--busy-indicator-frame)
+               (lambda () nil)))
+      (let ((key-hints '(((:key . "n") (:description . "Next"))
+                         ((:key . "?") (:description . "Help")))))
+        ;; Enabled
+        (let* ((agent-shell-show-key-hints t)
+               (model (agent-shell--make-header-model agent-shell--state
+                                                      :key-hints key-hints)))
+          (should (equal (map-elt model :key-hints) key-hints)))
+        ;; Disabled
+        (let* ((agent-shell-show-key-hints nil)
+               (model (agent-shell--make-header-model agent-shell--state
+                                                      :key-hints key-hints)))
+          (should (assq :key-hints model))
+          (should-not (map-elt model :key-hints)))))))
+
+(ert-deftest agent-shell--make-header-text-honors-show-key-hints-test ()
+  "Test `agent-shell--make-header' text mode honors `agent-shell-show-key-hints'."
+  (with-temp-buffer
+    (setq-local agent-shell--state
+                `((:agent-config . ((:buffer-name . "Claude Code")
+                                    (:icon-name . nil)))
+                  (:session . ((:id . nil)
+                               (:model-id . nil)
+                               (:models . nil)
+                               (:mode-id . nil)
+                               (:modes . nil)))))
+    (cl-letf (((symbol-function 'agent-shell--state)
+               (lambda () agent-shell--state))
+              ((symbol-function 'agent-shell--context-usage-indicator)
+               (lambda () nil))
+              ((symbol-function 'agent-shell--busy-indicator-frame)
+               (lambda () nil)))
+      (let ((agent-shell-header-style 'text)
+            (key-hints '(((:key . "?") (:description . "Help")))))
+        ;; Enabled: help hint present
+        (let* ((agent-shell-show-key-hints t)
+               (header (agent-shell--make-header agent-shell--state
+                                                 :position "1/1"
+                                                 :key-hints key-hints)))
+          (should (string-match-p (regexp-quote "? Help")
+                                  (substring-no-properties header))))
+        ;; Disabled: help hint absent
+        (let* ((agent-shell-show-key-hints nil)
+               (header (agent-shell--make-header agent-shell--state
+                                                 :position "1/1"
+                                                 :key-hints key-hints)))
+          (should-not (string-match-p (regexp-quote "? Help")
+                                      (substring-no-properties header))))))))
+
 (ert-deftest agent-shell--make-header-graphical-status-fg-test ()
   "Test graphical header honors a propertized `:status' foreground."
   (skip-unless (image-type-available-p 'svg))

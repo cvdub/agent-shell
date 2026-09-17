@@ -566,6 +566,18 @@ Can be one of:
                  (const :tag "No header" nil))
   :group 'agent-shell)
 
+(defcustom agent-shell-show-key-hints t
+  "Non-nil to display the key hint row in viewport headers.
+
+Key hints are the keybinding reminders rendered below the header title
+\(e.g. \"n Next p Previous ? Help\").  Set to nil to hide them and
+reclaim the row.
+
+Only viewport buffers display key hints, so this has no effect on shell
+buffer headers."
+  :type 'boolean
+  :group 'agent-shell)
+
 (defcustom agent-shell-show-session-id nil
   "Non-nil to display the session ID in the header and session selection.
 
@@ -5669,7 +5681,7 @@ defaulting to the frame width."
     (:busy-indicator-frame . ,(agent-shell--busy-indicator-frame))
     (:position . ,position)
     (:status . ,status)
-    (:key-hints . ,key-hints)
+    (:key-hints . ,(when agent-shell-show-key-hints key-hints))
     (:menu-keys . ,menu-keys)))
 
 (defun agent-shell--header-cache-key (model)
@@ -5694,6 +5706,8 @@ foreground color.
 KEY-HINTS is a list of alists defining the key hint row to display, each with:
   :key         - Key string (e.g., \"n\")
   :description - Description to display (e.g., \"next hunk\")
+
+Ignored when `agent-shell-show-key-hints' is nil.
 
 MENU-KEYS is an alist mapping each clickable label to the key description
 string shown in its help-echo tooltip, each with:
