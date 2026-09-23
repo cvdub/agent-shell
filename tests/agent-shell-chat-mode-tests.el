@@ -915,7 +915,7 @@ steer fires no event, so it stayed hidden until something else relabeled
                    (point)))))))
 
 (ert-deftest agent-shell-chat-live-prompt-shows-marker-test ()
-  "The live prompt shows the `❯' marker, faced `default' (not the prompt face)."
+  "The live prompt marker has its own customizable face."
   (agent-shell-chat-mode-tests--with-shell
     (agent-shell-chat-mode-tests--prompt "Claude> ")
     (let ((agent-shell-prompt-bar-mode nil))
@@ -924,7 +924,7 @@ steer fires no event, so it stayed hidden until something else relabeled
                       (car (agent-shell-chat-mode-tests--me-overlays)))))
         (should (string-match-p "❯" display))
         ;; The marker must not inherit the covered prompt face.
-        (should (eq 'default
+        (should (eq 'agent-shell-chat-prompt
                     (get-text-property (string-match "❯" display) 'face display)))))))
 
 (ert-deftest agent-shell-chat-live-prompt-keeps-marker-while-typing-test ()
@@ -1053,7 +1053,7 @@ the marker."
         (should-not (get-text-property 4 'display marker))))))
 
 (ert-deftest agent-shell-chat-live-marker-frame-faced-secondary-test ()
-  "A busy frame is faced `agent-shell-secondary', the marker `default'.
+  "A busy frame is faced `agent-shell-secondary', the marker `agent-shell-chat-prompt'.
 The frame recedes behind the marker, which stays as it is when idle."
   (agent-shell-chat-mode-tests--with-shell
     (let ((agent-shell-show-busy-indicator t))
@@ -1061,7 +1061,7 @@ The frame recedes behind the marker, which stays as it is when idle."
       (let ((marker (agent-shell-chat--live-marker)))
         (should (eq (get-text-property 0 'face marker) 'agent-shell-secondary))
         (should (eq (get-text-property (string-match "❯" marker) 'face marker)
-                    'default))))))
+                    'agent-shell-chat-prompt))))))
 
 (ert-deftest agent-shell-chat-submitted-prompt-stops-animating-test ()
   "Only the live prompt animates: submitting it leaves no marker to redraw."

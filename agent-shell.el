@@ -62,6 +62,7 @@
 (require 'agent-shell-artist)
 (require 'agent-shell-faces)
 (require 'agent-shell-markdown)
+(require 'agent-shell-fontification)
 (require 'agent-shell-antigravity)
 (require 'agent-shell-anthropic)
 (require 'agent-shell-auggie)
@@ -373,6 +374,7 @@ members, so neither local nor global renderers run.
 
 Passes agent-shell's own cache directory as the renderer's remote-image
 cache so downloaded images share `agent-shell-cache-dir'."
+  (agent-shell-fontification--clear-message-face)
   (let ((agent-shell-markdown-render-functions
          (when external-renderers
            agent-shell-markdown-render-functions)))
@@ -380,7 +382,9 @@ cache so downloaded images share `agent-shell-cache-dir'."
              :render-images render-images
              :highlight-blocks highlight-blocks
              :complete complete
-             :image-cache-directory (agent-shell-cache-dir "content"))))
+             :image-cache-directory (agent-shell-cache-dir "content")))
+  (agent-shell-fontification--apply-message-face)
+  (agent-shell-fontification--apply-tool-faces))
 
 (defun agent-shell--render-deferred-markup ()
   "Render markup the streaming passes held back, the turn being over.
@@ -3273,7 +3277,7 @@ See `agent-shell-activity-group-header-label-function'."
                               (concat (propertize (format "%s: " (map-elt entry :label))
                                                   'font-lock-face 'agent-shell-section-heading)
                                       (propertize (number-to-string (map-elt entry :count))
-                                                  'font-lock-face 'default))))
+                                                  'font-lock-face 'agent-shell-activity-count))))
                           tally)))
     (when parts
       (string-join parts " "))))
@@ -3419,7 +3423,9 @@ Clears STATE's `:expanded-activity-group'."
               ;; distinct; otherwise fall back to the per-run group count.
               :block-id (format "%s-agent_message_chunk"
                                 (or message-id (map-elt state :chunked-group-count)))
-              :body content
+              :body (agent-shell--add-text-properties
+                     content
+                     'agent-shell-message-body t)
               :create-new new-message
               :append t
               :navigation 'never
@@ -3727,7 +3733,9 @@ Clears STATE's `:expanded-activity-group'."
                     ;; Prepend fenced command to body for Bash-like
                     ;; tools.
                     (command-block (when saved-command
-                                     (concat "```console\n" saved-command "\n```")))
+                                     (agent-shell--face-tool-content
+                                      (concat "```console\n" saved-command "\n```")
+                                      'agent-shell-tool-command)))
                     ;; For tools without a `command' parameter such
                     ;; as MCP tools, render the input parameters
                     ;; above the body so the user can inspect
@@ -3745,7 +3753,9 @@ Clears STATE's `:expanded-activity-group'."
                                             (not saved-command)
                                             (not (agent-shell-elicitation--questionnaire-p
                                                   saved-input)))
-                                   (agent-shell--format-tool-call-input saved-input))))
+                                   (agent-shell--face-tool-content
+                                    (agent-shell--format-tool-call-input saved-input)
+                                    'agent-shell-tool-input))))
                (agent-shell--update-fragment
                 :state state
                 :block-id (map-nested-elt acp-notification '(params update toolCallId))
@@ -3754,18 +3764,14 @@ Clears STATE's `:expanded-activity-group'."
                 :group-id group-id
                 :group-label agent-shell--activity-group-label
                 :group-expanded (agent-shell--activity-group-initial-expanded-p)
-                :body (cond
-                       ;; A form is showing these questions interactively
-                       ;; just below, so repeating them here would ask twice.
-                       ((agent-shell-elicitation--pending-for-tool-call-p
-                         :state state :tool-call-id tool-call-id)
-                        "")
-                       (command-block
-                        (concat command-block "\n\n" (string-trim body-text)))
-                       (input-block
-                        (concat input-block "\n\n" (string-trim body-text)))
-                       (t
-                        (string-trim body-text)))
+                :body (if (agent-shell-elicitation--pending-for-tool-call-p
+                           :state state :tool-call-id tool-call-id)
+                          ""
+                        (concat
+                         (when (or command-block input-block)
+                           (concat (or command-block input-block) "\n\n"))
+                         (agent-shell--face-tool-content
+                          (string-trim body-text) 'agent-shell-tool-output)))
                 :expanded agent-shell-tool-use-expand-by-default
                 :above-last-prompt (not (agent-shell--active-requests-p state)))
                (agent-shell--refresh-activity-group-header state group-id)
@@ -4921,13 +4927,16 @@ Returns propertized labels in :status and :title propertized."
                               (not (equal (string-remove-prefix "`" (string-remove-suffix "`" (string-trim title)))
                                           (string-remove-prefix "`" (string-remove-suffix "`" (string-trim description))))))
                          (concat
-                          (propertize title 'font-lock-face 'default)
+                          (propertize title 'font-lock-face 'agent-shell-tool-title)
                           " "
-                          (propertize description 'font-lock-face 'agent-shell-section-annotation)))
+                          (propertize description 'font-lock-face 'agent-shell-tool-description)))
                         (title
-                         (propertize title 'font-lock-face 'default))
+                         (propertize title 'font-lock-face 'agent-shell-tool-title))
                         (description
-                         (propertize description 'font-lock-face 'default)))))
+                         (propertize description 'font-lock-face
+                                     (if (map-elt tool-call :description)
+                                         'agent-shell-tool-description
+                                       'agent-shell-tool-command))))))
       `((:status . ,status)
         (:title . ,(if (and label stats)
                        (concat label " " stats)
@@ -4943,10 +4952,11 @@ ENTRIES may be a string or a sequence of alists, for example:
       ((status . \"pending\")
        (content . \"Run tests\")))
 
-Strings are returned as-is.  Each alist entry is expected to have
+Strings receive the plan step face.  Each alist entry is expected to have
 a `status' key and a `content' or `step' key."
   (cond
-   ((stringp entries) entries)
+   ((stringp entries)
+    (agent-shell--face-unstyled-text entries 'agent-shell-plan-step))
    ((or (vectorp entries) (listp entries))
     (agent-shell--align-alist
      :data entries
@@ -4954,10 +4964,12 @@ a `status' key and a `content' or `step' key."
                (lambda (entry)
                  (agent-shell--make-status-kind-label :status (map-elt entry 'status)))
                (lambda (entry)
-                 (or (map-elt entry 'content)
-                     ;; codex-acp uses non-standard 'step
-                     ;; instead of standard 'content.
-                     (map-elt entry 'step))))
+                 (agent-shell--face-unstyled-text
+                  (or (map-elt entry 'content)
+                      ;; codex-acp uses non-standard 'step
+                      ;; instead of standard 'content.
+                      (map-elt entry 'step))
+                  'agent-shell-plan-step)))
      :separator " "
      :joiner "\n"))))
 
@@ -4985,8 +4997,8 @@ whose buffer text is what gets sent to the agent."
                   ;; face would merge into the caller's own face as an
                   ;; invalid spec.
                   (when boxed
-                    (list 'font-lock-face '(:box t)
-                          'face '(:box t)))
+                    (list 'font-lock-face 'agent-shell-button
+                          'face 'agent-shell-button))
                   (list 'help-echo help
                         'pointer 'hand
                         'keymap (let ((map (make-sparse-keymap)))
@@ -5252,8 +5264,9 @@ variable (see makunbound)"))
                  (map-elt config :welcome-function))
         (shell-maker-write-output
          :config shell-maker--config
-         :output (funcall (map-elt config :welcome-function)
-                          shell-maker--config)))
+         :output (agent-shell--face-unstyled-text
+                  (funcall (map-elt config :welcome-function) shell-maker--config)
+                  'agent-shell-output)))
       ;; TODO: Remove all `new-deferred' code paths.
       ;; The value was removed from `agent-shell-session-strategy' in 0.55.1
       ;; (see `agent-shell--validate-session-strategy'), but the branches
@@ -5425,6 +5438,13 @@ disturb any type-ahead the user entered while the shell bootstraps."
   (apply #'agent-shell--update-fragment
          :namespace-id "bootstrapping"
          :above-last-prompt t
+         :body (agent-shell--face-unstyled-text
+                (plist-get args :body)
+                (if (member (plist-get args :block-id)
+                            '("available_commands_update" "agent_capabilities"
+                              "available_config_options" "available_models" "available_modes"))
+                    'agent-shell-section-body
+                  'agent-shell-setup-status))
          args))
 
 (defun agent-shell--tag-untagged-output (start end)
@@ -5473,6 +5493,10 @@ with GROUP-EXPANDED as the group's initial fold state."
   ;; them about the out-of-turn case.
   (when agent-shell-persistent-prompt-enabled
     (setq above-last-prompt t))
+  (setq label-left (agent-shell--face-unstyled-text label-left 'agent-shell-section-heading)
+        label-right (agent-shell--face-unstyled-text label-right 'agent-shell-section-title)
+        group-label (agent-shell--face-unstyled-text group-label 'agent-shell-section-heading)
+        body (agent-shell--face-unstyled-text body 'agent-shell-section-body))
   (when label-right
     (setq label-right (string-trim label-right)))
   ;; Convert non-standard multiline single-backtick code spans to fenced
@@ -5673,6 +5697,7 @@ Lands above the live prompt while
 `agent-shell-persistent-prompt-enabled' is on, the same as
 `agent-shell--update-fragment'.  Without it this appends at `point-max',
 which mid-turn is past whatever the user is typing."
+  (setq text (agent-shell--face-unstyled-text text 'agent-shell-output))
   (let ((ns (or namespace-id (map-elt state :request-count))))
     (when-let* (((map-elt state :buffer))
                 (viewport-buffer (agent-shell-viewport--buffer
@@ -9961,7 +9986,7 @@ For example:
             (if title
                 (propertize
                  (format "\n\n\n    %s" title)
-                 'font-lock-face 'agent-shell-input)
+                 'font-lock-face 'agent-shell-permission-description)
               "")
             (if diff-button
                 (concat diff-button " ")

@@ -71,7 +71,7 @@ Returns a propertized string or nil."
                               (face (map-elt status-config :face)))
                           (agent-shell--add-text-properties
                            (propertize (format label-format label)
-                                       'font-lock-face 'default)
+                                       'font-lock-face 'agent-shell-status-label)
                            'font-lock-face (list face '(:inverse-video t))))))
          (kind-text (when kind
                       (let ((box-color (face-foreground
@@ -79,7 +79,7 @@ Returns a propertized string or nil."
                         (agent-shell--add-text-properties
                          (propertize (format label-format
                                              (agent-shell--short-kind-label kind))
-                                     'font-lock-face 'default)
+                                     'font-lock-face 'agent-shell-status-label)
                          'font-lock-face `((:box (:color ,box-color))))))))
     (concat status-text kind-text)))
 
@@ -218,14 +218,14 @@ Returns a propertized string or nil."
             (agent-shell--add-text-properties
              (propertize (format label-format
                                  (map-elt status-config :icon))
-                         'font-lock-face 'default)
+                         'font-lock-face 'agent-shell-status-label)
              'font-lock-face (list face '(:inverse-video t)))))
          (kind-text
           (when kind
             (agent-shell--add-text-properties
              (propertize (format label-format
                                  (agent-shell--short-kind-label kind))
-                         'font-lock-face 'default)
+                         'font-lock-face 'agent-shell-status-label)
              'font-lock-face
              `((:box (:color ,(face-foreground face nil t))))))))
     (concat status-text kind-text)))

@@ -114,6 +114,75 @@ Shared muted style for supporting text such as activity-group summaries,
 listing descriptions and usage readouts."
   :group 'agent-shell-faces)
 
+(defface agent-shell-output
+  '((t nil))
+  "Face for plain output, such as welcome text and notices."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-section-body
+  '((t nil))
+  "Fallback face for section bodies without a more specific face."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-section-title
+  '((t nil))
+  "Fallback face for section titles without a more specific face."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-tool-output
+  '((t :inherit agent-shell-section-body))
+  "Face for tool results."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-tool-input
+  '((t :inherit agent-shell-section-body))
+  "Face for structured tool input parameters."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-tool-command
+  '((t :inherit agent-shell-section-body))
+  "Face for commands executed by tools."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-plan-step
+  '((t :inherit agent-shell-section-body))
+  "Face for plan step text."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-setup-status
+  '((t :inherit agent-shell-section-body))
+  "Face for session setup and configuration progress."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-tool-title
+  '((t :inherit agent-shell-section-title))
+  "Face for tool titles, such as file names."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-tool-description
+  '((t :inherit agent-shell-section-title))
+  "Face for human-readable tool descriptions."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-activity-count
+  '((t :inherit agent-shell-section-title))
+  "Face for tool and thought counts in activity summaries."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-fold-indicator
+  '((t nil))
+  "Face for section expand and collapse indicators."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-button
+  '((t :box t))
+  "Face for buttons, such as permission choices and error details."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-status-label
+  '((t nil))
+  "Base face for decorated tool status and kind labels."
+  :group 'agent-shell-faces)
 
 ;;; Status (semantic states)
 
@@ -164,6 +233,12 @@ Used for command, capability, config option, model and mode names."
   "Face for user input."
   :group 'agent-shell-faces)
 
+(defface agent-shell-message
+  '((t nil))
+  "Base face for agent messages addressed to the user.
+For example, replies carry this face, but thoughts and tool output do not."
+  :group 'agent-shell-faces)
+
 (defface agent-shell-key-binding
   '((t :inherit help-key-binding))
   "Face for key binding hints shown in the header and mode-line."
@@ -177,6 +252,12 @@ Used for command, capability, config option, model and mode names."
 (defface agent-shell-permission-title
   '((t :inherit bold))
   "Face for the tool permission dialog title."
+  :group 'agent-shell-faces)
+
+(defface agent-shell-permission-description
+  '((t :inherit agent-shell-input))
+  "Face for the tool description in a permission request.
+For example, the command being approved uses this face."
   :group 'agent-shell-faces)
 
 
@@ -213,6 +294,23 @@ On graphical frames the label is drawn with a box; on terminals,
 where boxes are not rendered, it falls back to inverse video so the
 label stays visible."
   :group 'agent-shell-faces)
+
+(defun agent-shell--face-unstyled-text (text face)
+  "Return a copy of TEXT with FACE on otherwise unstyled runs.
+For example, a plain tool result gains a body face while colored
+status text retains its existing face.  Nil TEXT returns nil.
+Message bodies are styled separately after Markdown rendering."
+  (when text
+    (let ((text (copy-sequence text))
+          (pos 0))
+      (while (< pos (length text))
+        (let ((end (next-property-change pos text (length text))))
+          (unless (or (get-text-property pos 'face text)
+                      (get-text-property pos 'font-lock-face text)
+                      (get-text-property pos 'agent-shell-message-body text))
+            (add-text-properties pos end (list 'face face 'font-lock-face face) text))
+          (setq pos end)))
+      text)))
 
 (provide 'agent-shell-faces)
 
