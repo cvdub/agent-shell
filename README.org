@@ -1061,6 +1061,14 @@ always go to Evil modes if you need to with ~C-z~).
   		(evil-emacs-state)))))
 #+end_src
 
+* Text faces
+
+Customize faces in the =agent-shell-faces= group to control text appearance. =agent-shell-message= styles reply prose, =agent-shell-input= styles user input, and =agent-shell-permission-description= styles permission descriptions. Markdown code and tables retain their own faces.
+
+Tool results use =agent-shell-tool-output=, structured parameters use =agent-shell-tool-input=, and executed commands use =agent-shell-tool-command=. Plan text uses =agent-shell-plan-step=, and session setup/configuration progress uses =agent-shell-setup-status=. Tool labels distinguish =agent-shell-tool-title= from =agent-shell-tool-description=; commands shown as fallback labels use =agent-shell-tool-command=. Activity summary counts use =agent-shell-activity-count=.
+
+The more specific faces inherit from =agent-shell-section-body= or =agent-shell-section-title=, which also cover sections without a specific role. Other plain output uses =agent-shell-output=. Fold indicators and decorated status labels use =agent-shell-fold-indicator= and =agent-shell-status-label=. Buttons use =agent-shell-button=, and the chat input marker uses =agent-shell-chat-prompt=. Apart from button borders, these faces are neutral by default, so font choices (including personal mixed-pitch configuration) remain in your Emacs configuration.
+
 * Customizations
 
 #+BEGIN_SRC emacs-lisp :results table :colnames '("Custom variable" "Description") :exports results

@@ -1082,7 +1082,9 @@ indents a child's header line under its group header."
             (setq collapsable (and body has-labels))
             (setq indicator-start (point))
             (insert (agent-shell-ui-make-foldable-text
-                     :text (if expanded "▼ " "▶ ")
+                     :text (propertize (if expanded "▼ " "▶ ")
+                                      'face 'agent-shell-fold-indicator
+                                      'font-lock-face 'agent-shell-fold-indicator)
                      :hint "toggle"))
             (setq indicator-end (point))
             (add-text-properties indicator-start indicator-end

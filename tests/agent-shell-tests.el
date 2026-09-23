@@ -6718,14 +6718,14 @@ think-kind calls into Thinking."
                                 (cons :activity-thoughts '(("g" . 1)))))))
     ;; Nothing to count -> nil.
     (should-not (tally (list (cons :tool-calls nil) (cons :activity-thoughts nil))))
-    ;; Two-tone: label uses the heading face, count uses the default face.
+    ;; Two-tone: label uses the heading face, count uses the activity count face.
     (let ((s (agent-shell-activity-group-tally-label
               (list (cons :state (list (cons :tool-calls (list (tc "a" "execute")))
                                        (cons :activity-thoughts nil)))
                     (cons :group-id "g")))))
       (should (equal "Commands: 1" (substring-no-properties s)))
       (should (eq 'agent-shell-section-heading (get-text-property 0 'font-lock-face s)))
-      (should (eq 'default (get-text-property (1- (length s)) 'font-lock-face s))))))
+      (should (eq 'agent-shell-activity-count (get-text-property (1- (length s)) 'font-lock-face s))))))
 
 (ert-deftest agent-shell--on-notification-agent-thought-chunk-face-test ()
   "Test `agent_thought_chunk' rendering hands the body its base face.
@@ -7288,6 +7288,46 @@ busy state, decides it."
             :busy t)
            '(:empty-input t :after-typing t :in-output nil))))
 
+(ert-deftest agent-shell-faces-streaming-fragments-test ()
+  "Streaming replies, tools and live input retain distinct faces."
+  (agent-shell-tests--with-persistent-prompt-shell
+   (lambda ()
+     (agent-shell-fontification--initialize)
+     (insert "draft")
+     (cl-letf (((symbol-function 'agent-shell--append-transcript) #'ignore)
+               ((symbol-function 'agent-shell--emit-event) #'ignore))
+       (dolist (text '("A **bo" "ld** `code`"))
+         (agent-shell--on-notification
+          :state agent-shell--state
+          :acp-notification `((method . "session/update")
+                              (params (update
+                                       (sessionUpdate . "agent_message_chunk")
+                                       (content (type . "text") (text . ,text))))))))
+     (agent-shell--update-fragment :state agent-shell--state
+                                  :block-id "tool" :label-left "Tool"
+                                  :body "Tool detail" :create-new t)
+     (dolist (chat '(nil t))
+       (unwind-protect
+           (progn
+             (when chat (agent-shell-chat-mode 1))
+             (save-excursion
+               (goto-char (point-min))
+               (search-forward "bold")
+               (should (equal '(agent-shell-message agent-shell-markdown-bold)
+                              (get-text-property (1- (point)) 'font-lock-face)))
+               (search-forward "code")
+               (should (eq 'agent-shell-markdown-inline-code
+                           (get-text-property (1- (point)) 'font-lock-face)))
+               (search-forward "Tool detail")
+               (should-not (get-text-property (1- (point)) 'agent-shell-message-body)))
+             (should (equal "draft"
+                            (buffer-substring-no-properties
+                             (overlay-start agent-shell-fontification--draft)
+                             (overlay-end agent-shell-fontification--draft)))))
+         (when chat (agent-shell-chat-mode -1))))
+     (should-not (assq 'agent-shell-message face-remapping-alist)))
+   :busy t))
+
 (ert-deftest agent-shell--point-in-live-input-p-stale-prompt-test ()
   "A prompt with output streaming below it is not somewhere to type.
 
@@ -7553,7 +7593,7 @@ the global hook value must stay quiet."
   (let ((state '((:tool-calls . (("t1" . ((:kind . "read")
                                           (:status . "completed")
                                           (:title . "file.el"))))))))
-    (should (equal 'default
+    (should (equal 'agent-shell-tool-title
                    (get-text-property
                     0 'font-lock-face
                     (map-elt (agent-shell-make-tool-call-label state "t1") :title))))))

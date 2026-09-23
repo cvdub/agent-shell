@@ -115,6 +115,11 @@ drop the input flush to column 0.")
 
 ;;; Faces
 
+(defface agent-shell-chat-prompt
+  '((t nil))
+  "Face for the marker before editable input in chat mode."
+  :group 'agent-shell-faces)
+
 (defface agent-shell-chat-me-label
   '((t :inherit (bold font-lock-keyword-face) :inverse-video t :box t))
   "Face for the user (\"Me\") chat label.
@@ -192,9 +197,9 @@ follows it instead."
                                                         (,(string-width agent-shell-chat--body-indent)
                                                          . width))))
                                   agent-shell-chat--prompt)
-                          'face 'default))
+                          'face 'agent-shell-chat-prompt))
     (propertize (concat agent-shell-chat--body-indent agent-shell-chat--prompt)
-                'face 'default)))
+                'face 'agent-shell-chat-prompt)))
 
 (defun agent-shell-chat--find-live-marker-overlay ()
   "Return the overlay drawing the live prompt's marker, or nil.
@@ -698,7 +703,7 @@ above, putting the first line of a multi-line input out of reach of
                                       (point))))
                (me-label (agent-shell-chat--label
                           "Me" 'agent-shell-chat-me-label))
-               ;; Face the padding and marker `default' so they do not inherit
+               ;; Face the padding `default' so it does not inherit
                ;; the covered text's face: a display string's unfaced chars
                ;; take the face of the text they replace, and after a code
                ;; block that is the tinted source-block background.
@@ -1130,7 +1135,7 @@ replaced by the label, a blank line, and the marker the input follows:
                          (propertize "\n\n" 'face 'default)
                          (propertize (concat agent-shell-chat--body-indent
                                              agent-shell-chat--prompt)
-                                     'face 'default)))
+                                     'face 'agent-shell-chat-prompt)))
     overlay))
 
 (defun agent-shell-chat--decorate-queued-prompt (event)
