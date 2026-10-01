@@ -787,6 +787,8 @@ In edit mode, =C-c C-c= sends or queues the prompt and switches to view mode whe
 
 In view mode, use =r= to compose a reply, =R= to quote the response in a reply, =b= / =f= to move between interactions, =p= / =n= to move between items, =?= for help, and =q= to bury the viewport.
 
+Replies opened with =r= or =R= use a dedicated editor in the bottom third of the viewport window, keeping the normal viewport visible above. Only this editor has a compact =turn/total ➤ project ➤ thread= header, using the Agent Shell session faces. Sending or confirming cancellation closes the temporary split and returns to the normal viewport. Declining cancellation or a send error preserves the draft; =C-u C-c C-c= keeps the editor open for another prompt. A selected region is quoted by =r=; =R= quotes the whole response.
+
 #+begin_quote
 [!NOTE]
 

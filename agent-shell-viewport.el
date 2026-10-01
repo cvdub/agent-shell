@@ -35,6 +35,7 @@
 (require 'flymake)
 (require 'agent-shell-dnd)
 (require 'agent-shell-list-edit)
+(require 'agent-shell-reply)
 (require 'agent-shell-markdown)
 (require 'agent-shell-faces)
 (require 'shell-maker)
@@ -211,6 +212,10 @@ compose buffer open in edit mode so another prompt can be composed and
 queued right away, regardless of `agent-shell-viewport-dismiss-on-send'."
   (declare (modes agent-shell-viewport-edit-mode))
   (interactive "P")
+  (agent-shell-reply--finish #'agent-shell-viewport--compose-send keep-composing))
+
+(defun agent-shell-viewport--compose-send (&optional keep-composing)
+  "Implement `agent-shell-viewport-compose-send' with KEEP-COMPOSING."
   (unless (derived-mode-p 'agent-shell-viewport-edit-mode)
     (user-error "Not in a shell viewport buffer"))
   (when (and (not (eq agent-shell-session-strategy 'new-deferred))
@@ -223,9 +228,9 @@ queued right away, regardless of `agent-shell-viewport-dismiss-on-send'."
   (cond
    (keep-composing
     (agent-shell-viewport--compose-queue))
-   (agent-shell-viewport-dismiss-on-send
+   ((and agent-shell-viewport-dismiss-on-send (not agent-shell-reply-mode))
     (agent-shell-viewport-compose-send-and-dismiss))
-   (agent-shell-prefer-viewport-interaction
+   ((or agent-shell-reply-mode agent-shell-prefer-viewport-interaction)
     (agent-shell-viewport-compose-send-and-wait-for-response))
    (t
     (agent-shell-viewport-compose-send-and-kill))))
@@ -483,17 +488,27 @@ Optionally set its PROMPT and RESPONSE."
   (declare (modes agent-shell-viewport-view-mode
                   agent-shell-viewport-edit-mode))
   (interactive)
+  (agent-shell-reply--finish #'agent-shell-viewport--compose-cancel))
+
+(defun agent-shell-viewport--compose-cancel ()
+  "Implement `agent-shell-viewport-compose-cancel'."
   (agent-shell-viewport--ensure-buffer)
   (setq agent-shell-viewport--compose-snapshot nil)
   (let ((viewport-buffer (current-buffer))
         (shell-buffer (agent-shell-viewport--shell-buffer)))
     (cond
      ((and agent-shell-viewport-dismiss-on-send
+           (not agent-shell-reply-mode)
            (derived-mode-p 'agent-shell-viewport-edit-mode))
       (when (or (string-empty-p (string-trim (buffer-string)))
                 (y-or-n-p "Discard composed prompt? "))
         (agent-shell-viewport--initialize)
         (agent-shell-viewport--dismiss viewport-buffer)))
+     ((and agent-shell-reply-mode
+           (derived-mode-p 'agent-shell-viewport-edit-mode))
+      (when (or (string-empty-p (string-trim (buffer-string)))
+                (y-or-n-p "Discard composed prompt? "))
+        (agent-shell-viewport-view-mode)))
      ;; View mode
      ((derived-mode-p 'agent-shell-viewport-view-mode)
       (bury-buffer))
@@ -827,6 +842,10 @@ QUOTED-TEXT is inserted as a block quote as part of the reply."
   "Reply as a follow-up and compose another prompt/query."
   (declare (modes agent-shell-viewport-view-mode))
   (interactive)
+  (agent-shell-reply--below #'agent-shell-viewport--reply))
+
+(defun agent-shell-viewport--reply ()
+  "Implement `agent-shell-viewport-reply'."
   (unless (derived-mode-p 'agent-shell-viewport-view-mode)
     (user-error "Not in a shell viewport buffer"))
   (let ((region (map-elt (agent-shell--get-region :deactivate t) :content)))
@@ -839,6 +858,10 @@ QUOTED-TEXT is inserted as a block quote as part of the reply."
   "Reply with the entire response block-quoted."
   (declare (modes agent-shell-viewport-view-mode))
   (interactive)
+  (agent-shell-reply--below #'agent-shell-viewport--quote-reply))
+
+(defun agent-shell-viewport--quote-reply ()
+  "Implement `agent-shell-viewport-quote-reply'."
   (unless (derived-mode-p 'agent-shell-viewport-view-mode)
     (user-error "Not in a shell viewport buffer"))
   (let ((response (or (agent-shell-viewport--response) "")))
@@ -1596,19 +1619,26 @@ on current major mode."
                                                     :menu-keys `((:model . ,model-binding)
                                                                  (:mode . ,mode-binding)
                                                                  (:thought-level . ,thought-level-binding))))))
-      (setq-local header-line-format header))))
+      (setq-local header-line-format header)))
+  (agent-shell-reply--header))
 
 (cl-defun agent-shell-viewport--shell-buffer (&optional viewport-buffer)
   "Get the shell buffer associated with VIEWPORT-BUFFER.
 
 Derives shell buffer name by removing the viewport suffix from buffer name.
 Returns nil if VIEWPORT-BUFFER is not a viewport buffer or shell doesn't exist."
-  (when-let* ((viewport-name (buffer-name (or viewport-buffer (current-buffer))))
-              ((string-suffix-p agent-shell-viewport--suffix viewport-name))
-              (shell-name (substring viewport-name 0
-                                     (- (length viewport-name)
-                                        (length agent-shell-viewport--suffix)))))
-    (get-buffer shell-name)))
+  (let ((reply-shell (buffer-local-value 'agent-shell-reply--shell
+                                         (or viewport-buffer (current-buffer)))))
+    (if reply-shell
+        (if (buffer-live-p reply-shell)
+            reply-shell
+          (user-error "The reply's agent session has closed"))
+      (when-let* ((viewport-name (buffer-name (or viewport-buffer (current-buffer))))
+                  ((string-suffix-p agent-shell-viewport--suffix viewport-name))
+                  (shell-name (substring viewport-name 0
+                                         (- (length viewport-name)
+                                            (length agent-shell-viewport--suffix)))))
+        (get-buffer shell-name)))))
 
 (defun agent-shell-viewport--clean-up ()
   "Clean up resources.
