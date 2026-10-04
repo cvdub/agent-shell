@@ -1865,7 +1865,9 @@ Includes shells accessed via viewport buffers, preserving visited order."
                             buffer)
                            ((or (derived-mode-p 'agent-shell-viewport-view-mode)
                                 (derived-mode-p 'agent-shell-viewport-edit-mode))
-                            (agent-shell-viewport--shell-buffer buffer))))
+                            ;; Skip split replies whose shell has closed.
+                            (ignore-error user-error
+                              (agent-shell-viewport--shell-buffer buffer)))))
                     ((buffer-local-value 'shell-maker--config shell-buffer)))
           (unless (memq shell-buffer seen)
             (push shell-buffer seen)
@@ -4451,6 +4453,12 @@ For example, shut down ACP client."
                                   :existing-only t))
                 (buffer-live-p viewport-buffer))
       (kill-buffer viewport-buffer))
+    ;; Split replies aren't found by viewport name, so kill them explicitly.
+    (let ((shell-buffer (current-buffer)))
+      (dolist (buffer (buffer-list))
+        (when (eq (buffer-local-value 'agent-shell-reply--shell buffer)
+                  shell-buffer)
+          (kill-buffer buffer))))
     ;; Last, so the agent is gone before its working directory can be.
     (when (and agent-shell--pending-directory-cleanup
                (file-directory-p agent-shell--pending-directory-cleanup))

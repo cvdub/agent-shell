@@ -262,4 +262,35 @@
     (should (= 1 (length (window-list))))
     (should (eq (window-buffer) viewport))))
 
+(ert-deftest agent-shell-reply-orphan-does-not-break-buffer-listing ()
+  (agent-shell-reply-test-with-viewport
+    (agent-shell-viewport-reply)
+    (let ((reply (current-buffer))
+          (other (generate-new-buffer "reply-test-other")))
+      (unwind-protect
+          (progn
+            (with-current-buffer other
+              (setq-local major-mode 'agent-shell-mode)
+              (setq-local shell-maker--config '((:name . "test"))))
+            ;; Model a reply that outlived its shell.
+            (with-current-buffer reply
+              (setq agent-shell-reply--shell (generate-new-buffer "dead-shell"))
+              (kill-buffer agent-shell-reply--shell))
+            (should (memq other (agent-shell-buffers)))
+            (with-current-buffer reply
+              (should-error (agent-shell-viewport--shell-buffer)
+                            :type 'user-error)))
+        (kill-buffer other)))))
+
+(ert-deftest agent-shell-reply-killed-with-shell ()
+  (agent-shell-reply-test-with-viewport
+    (agent-shell-viewport-reply)
+    (let ((reply (current-buffer)))
+      (cl-letf (((symbol-function 'agent-shell--cancel-idle-timer) #'ignore)
+                ((symbol-function 'agent-shell--emit-event) #'ignore)
+                ((symbol-function 'agent-shell--shutdown) #'ignore))
+        (with-current-buffer shell
+          (agent-shell--clean-up)))
+      (should-not (buffer-live-p reply)))))
+
 ;;; agent-shell-reply-tests.el ends here
