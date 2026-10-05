@@ -836,7 +836,8 @@ QUOTED-TEXT is inserted as a block quote as part of the reply."
     (goto-char (if (or snapshot quoted-text)
                    (point-max)
                  (or (next-single-property-change (point-min) 'cursor-intangible)
-                     (point-max))))))
+                     (point-max))))
+    (end-of-line)))
 
 (defun agent-shell-viewport-reply ()
   "Reply as a follow-up and compose another prompt/query."
