@@ -97,6 +97,7 @@
 (require 'agent-shell-qoder)
 (require 'agent-shell-qwen)
 (require 'agent-shell-styles)
+(require 'agent-shell-streaming)
 (require 'agent-shell-usage)
 (require 'agent-shell-worktree)
 (require 'agent-shell-ui)
@@ -313,6 +314,18 @@ are applied.  Each function is called with a range alist containing:
 
 (defcustom agent-shell-highlight-blocks t
   "Whether or not to highlight source blocks."
+  :type 'boolean
+  :group 'agent-shell)
+
+(defcustom agent-shell-stream-by-paragraph nil
+  "Whether to display streamed agent text a paragraph at a time.
+
+When non-nil, hold live response text until a blank line or a closing
+Markdown code fence arrives.  For example, \"Hello\\n\\nNext\" displays
+\"Hello\\n\\n\" immediately and holds \"Next\" until more text arrives.
+Flush remaining text on message boundaries, turn completion, errors,
+and interruption.  Transcripts and chunk events still update immediately.
+Restored history and messages outside an active turn display immediately."
   :type 'boolean
   :group 'agent-shell)
 
@@ -1292,6 +1305,7 @@ OUTGOING-REQUEST-DECORATOR (passed through to `acp-make-client')."
         (cons :config-options nil)
         (cons :last-entry-type nil)
         (cons :last-agent-message-id nil)
+        (cons :pending-agent-text nil)
         (cons :chunked-group-count 0)
         (cons :activity-group-count 0)
         (cons :activity-thoughts nil)
@@ -2336,6 +2350,7 @@ See also `agent-shell-confirm-interrupt'."
     (error "Not in a shell"))
   (cond ((map-nested-elt (agent-shell--state) '(:session :id))
          (when (or force (agent-shell-interrupt-confirmed-p))
+           (agent-shell--flush-agent-text (agent-shell--state))
            ;; First cancel all pending permission requests
            (map-do
             (lambda (tool-call-id tool-call-data)
@@ -3176,6 +3191,10 @@ Clears STATE's `:expanded-activity-group'."
   "Handle incoming ACP-NOTIFICATION using STATE."
   (map-put! state :last-activity-time (current-time))
   (cond ((equal (map-elt acp-notification 'method) "session/update")
+         (unless (member (map-nested-elt acp-notification '(params update sessionUpdate))
+                         '("agent_message_chunk" "usage_update" "session_info_update"
+                           "config_option_update" "current_mode_update"))
+           (agent-shell--flush-agent-text state))
          ;; Replayed user_message_chunks aren't followed by
          ;; shell-maker's end-of-prompt marker (no real
          ;; `comint-send-input').  Insert it on the first
@@ -3220,6 +3239,7 @@ Clears STATE's `:expanded-activity-group'."
                   (content (agent-shell--content-block-to-markdown
                             (map-nested-elt acp-notification '(params update content)))))
              (when new-message
+               (agent-shell--flush-agent-text state)
                (map-put! state :chunked-group-count (1+ (map-elt state :chunked-group-count)))
                (agent-shell--append-transcript
                 :text (format "\n## Agent (%s)\n\n" (format-time-string "%F %T"))
@@ -3234,7 +3254,7 @@ Clears STATE's `:expanded-activity-group'."
              (agent-shell--emit-event
               :event 'agent-message-chunk
               :data (list (cons :text-chunk (map-nested-elt acp-notification '(params update content text)))))
-             (agent-shell--update-fragment
+             (agent-shell--stream-agent-text
               :state state
               ;; Out of turn, key under a dedicated namespace so the
               ;; message forms its own fragment rather than coalescing
@@ -3244,13 +3264,15 @@ Clears STATE's `:expanded-activity-group'."
               ;; distinct; otherwise fall back to the per-run group count.
               :block-id (format "%s-agent_message_chunk"
                                 (or message-id (map-elt state :chunked-group-count)))
-              :body (agent-shell--add-text-properties
-                     content
-                     'agent-shell-message-body t)
+              :body content
               :create-new new-message
-              :append t
-              :navigation 'never
-              :render-body-images t
+              :buffered (and agent-shell-stream-by-paragraph
+                             (agent-shell--active-requests-p state)
+                             (seq-some (lambda (request)
+                                         (equal (map-elt request :method) "session/prompt"))
+                                       (map-elt state :active-requests))
+                             (equal (map-nested-elt acp-notification '(params update content type))
+                                    "text"))
               ;; Out of turn (no prompt request in flight) lands the
               ;; message above the fresh prompt rather than after it.
               :above-last-prompt (not (agent-shell--active-requests-p state)))
@@ -3669,6 +3691,7 @@ Clears STATE's `:expanded-activity-group'."
 (cl-defun agent-shell--on-request (&key state acp-request)
   "Handle incoming ACP-REQUEST using STATE."
   (cond ((equal (map-elt acp-request 'method) "session/request_permission")
+         (agent-shell--flush-agent-text state)
          (agent-shell--save-tool-call
           state (map-nested-elt acp-request '(params toolCall toolCallId))
           (append (list (cons :title (map-nested-elt acp-request '(params toolCall title)))
@@ -4326,6 +4349,7 @@ DIFFS is a list of diff infos as returned by
 (cl-defun agent-shell--make-error-handler (&key state shell-buffer)
   "Create ACP error handler with SHELL-BUFFER STATE."
   (lambda (acp-error raw-message)
+    (agent-shell--flush-agent-text state)
     (agent-shell-heartbeat-stop
      :heartbeat (map-elt state :heartbeat))
     (with-current-buffer (map-elt state :buffer)
@@ -7908,8 +7932,9 @@ out.  Returns nil when nothing was buffered."
 
 (defun agent-shell--replay-turn (state turn)
   "Dispatch each notification in TURN through STATE's notification handler."
-  (dolist (notification turn)
-    (agent-shell--on-notification :state state :acp-notification notification)))
+  (let ((agent-shell-stream-by-paragraph nil))
+    (dolist (notification turn)
+      (agent-shell--on-notification :state state :acp-notification notification))))
 
 (defun agent-shell--render-pending-restore (state)
   "Replay buffered prompt turns in STATE's pending-restore.
@@ -8355,6 +8380,7 @@ The agent config's `:mcp-servers' take precedence over the global
   (acp-subscribe-to-errors
    :client (map-elt state :client)
    :on-error (lambda (acp-error)
+               (agent-shell--flush-agent-text state)
                (agent-shell--update-fragment
                 :state state
                 :block-id (format "%s-notices"
@@ -8870,6 +8896,7 @@ reads the buffer's prompt capabilities."
                :prompt content-blocks)
      :buffer (current-buffer)
      :on-success (lambda (acp-response)
+                   (agent-shell--flush-agent-text (agent-shell--state))
                    (agent-shell--separate-transcript-after-agent-message
                     :last-entry-type (map-elt (agent-shell--state) :last-entry-type)
                     :file-path agent-shell--transcript-file)
@@ -8939,6 +8966,7 @@ Continue?" (agent-shell--prompt-queue-summary)))
                       (t
                        (agent-shell--prompt-queue-display :skip-summary t)))))
      :on-failure (lambda (acp-error raw-message)
+                   (agent-shell--flush-agent-text agent-shell--state)
                    ;; A failed/interrupted turn may have stopped mid
                    ;; agent_message_chunk, leaving the transcript body
                    ;; without a trailing newline.  Separate it so the

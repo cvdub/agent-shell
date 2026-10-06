@@ -1073,6 +1073,14 @@ The more specific faces inherit from =agent-shell-section-body= or =agent-shell-
 
 * Customizations
 
+To display live agent responses a paragraph at a time instead of chunk by chunk, enable =agent-shell-stream-by-paragraph= (default: =nil=):
+
+#+begin_src emacs-lisp
+(setq agent-shell-stream-by-paragraph t)
+#+end_src
+
+Paragraphs appear after a blank line; fenced code blocks appear after their closing fence. Remaining text appears at message boundaries, turn completion, errors, or interruption. Transcripts and chunk hooks continue updating immediately. Restored history and messages outside an active turn display immediately.
+
 #+BEGIN_SRC emacs-lisp :results table :colnames '("Custom variable" "Description") :exports results
   (let ((rows))
     (mapatoms
