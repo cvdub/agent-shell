@@ -852,8 +852,7 @@ QUOTED-TEXT is inserted as a block quote as part of the reply."
   (let ((region (map-elt (agent-shell--get-region :deactivate t) :content)))
     (agent-shell-viewport--setup-reply
      :quoted-text (when region (string-trim region))))
-  ;; Setting point isn't enough at times. Force scrolling.
-  (set-window-start (selected-window) (point-min)))
+  (set-window-start (selected-window) (point-min) t))
 
 (defun agent-shell-viewport-quote-reply ()
   "Reply with the entire response block-quoted."
