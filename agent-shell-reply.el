@@ -35,6 +35,7 @@
 (declare-function agent-shell-viewport--position "agent-shell-viewport")
 (declare-function agent-shell-viewport-view-mode "agent-shell-viewport")
 (declare-function agent-shell-viewport-edit-mode "agent-shell-viewport")
+(declare-function agent-shell-viewport--prompt-start "agent-shell-viewport")
 (declare-function agent-shell--project-name "agent-shell-project")
 
 (defvar-local agent-shell-reply--layout nil
@@ -160,6 +161,11 @@ argument requests continued composition."
               (when (and agent-shell-reply-mode
                          (derived-mode-p 'agent-shell-viewport-view-mode))
                 (agent-shell-reply--close)
+                (when (eq original #'agent-shell-viewport--compose-send)
+                  (with-current-buffer (window-buffer (selected-window))
+                    (when-let* ((start (agent-shell-viewport--prompt-start)))
+                      (goto-char start)
+                      (end-of-line))))
                 (let ((agent-shell-viewport--clean-up nil))
                   (kill-buffer viewport))))))
       (error

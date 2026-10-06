@@ -107,6 +107,37 @@
                           (expand-file-name "reply-submitted.png"
                                             (getenv "EMACS_TEST_ARTIFACTS"))))))))))
 
+(ert-deftest agent-shell-reply-long-draft-keeps-point-after-redisplay ()
+  (agent-shell-reply-test-with-viewport
+    (let ((draft (mapconcat (lambda (n) (format "Draft line %d" n))
+                           (number-sequence 1 40) "\n")))
+      (setq agent-shell-viewport--compose-snapshot
+            `((:content . ,draft) (:location . 1)))
+      (agent-shell-viewport-reply)
+      (should (equal (buffer-string) draft))
+      (should (= (point) (point-max)))
+      (redisplay t)
+      (should (= (point) (point-max))))))
+
+(ert-deftest agent-shell-reply-send-keeps-point-at-prompt-line-end ()
+  (dolist (header-style '(graphical text))
+    (agent-shell-reply-test-with-viewport
+      (let ((agent-shell-header-style header-style))
+        (agent-shell-viewport-reply)
+        (insert "Follow up")
+        (agent-shell-viewport-compose-send)
+        (should (eq (window-buffer) viewport))
+        (should (= (point) (+ (agent-shell-viewport--prompt-start)
+                             (length "Follow up"))))
+        (redisplay t)
+        (should (= (point) (+ (agent-shell-viewport--prompt-start)
+                             (length "Follow up"))))
+        (let ((position (point)))
+          (agent-shell-ui-update-text
+           :namespace-id 1 :block-id "response"
+           :text "\nMore response" :append t)
+          (should (= (point) position)))))))
+
 (ert-deftest agent-shell-reply-empty-send-and-cancel ()
   (agent-shell-reply-test-with-viewport
     (agent-shell-viewport-reply)
